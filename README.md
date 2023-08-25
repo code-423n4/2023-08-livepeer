@@ -61,8 +61,8 @@ Under "SPONSORS ADD INFO HERE" heading below, include the following:
 - Join [C4 Discord](https://discord.gg/code4rena) to register
 - Submit findings [using the C4 form](https://code4rena.com/contests/2023-08-livepeer/submit)
 - [Read our guidelines for more details](https://docs.code4rena.com/roles/wardens)
-- Starts August 30, 2023 20:00 UTC 
-- Ends September 5, 2023 20:00 UTC
+- Starts August 31, 2023 20:00 UTC 
+- Ends September 6, 2023 20:00 UTC
 
 ## Automated Findings / Publicly Known Issues
 
