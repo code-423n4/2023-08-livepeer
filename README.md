@@ -2,9 +2,10 @@
 
 This `README.md` contains a set of checklists for our audit collaboration.
 
-Your audit will use two repos: 
+Your audit will use two repos:
+
 - **an _audit_ repo** (this one), which is used for scoping your audit and for providing information to wardens
-- **a _findings_ repo**, where issues are submitted (shared with you after the audit) 
+- **a _findings_ repo**, where issues are submitted (shared with you after the audit)
 
 Ultimately, when we launch the audit, this repo will be made public and will contain the smart contracts to be reviewed and all the information needed for audit participants. The findings repo will be made public after the audit report is published and your team has mitigated the identified issues.
 
@@ -21,7 +22,6 @@ Some of the checklists in this doc are for **C4 (🐺)** and some of them are fo
 - [ ] Make sure your code is thoroughly commented using the [NatSpec format](https://docs.soliditylang.org/en/v0.5.10/natspec-format.html#natspec-format).
 - [ ] Please have final versions of contracts and documentation added/updated in this repo **no less than 48 business hours prior to audit start time.**
 - [ ] Be prepared for a 🚨code freeze🚨 for the duration of the audit — important because it establishes a level playing field. We want to ensure everyone's looking at the same code, no matter when they look during the audit. (Note: this includes your own repo, since a PR can leak alpha to our wardens!)
-
 
 ---
 
@@ -41,7 +41,7 @@ Under "SPONSORS ADD INFO HERE" heading below, include the following:
 - [ ] Describe anything else that adds any special logic that makes your approach unique
 - [ ] Identify any areas of specific concern in reviewing the code
 - [ ] Review the Gas award pool amount. This can be adjusted up or down, based on your preference - just flag it for Code4rena staff so we can update the pool totals across all comms channels.
-- [ ] Ensure that all links and image/file paths in this README use absolute paths, not relative paths. 
+- [ ] Ensure that all links and image/file paths in this README use absolute paths, not relative paths.
 - [ ] Optional / nice to have: pre-record a high-level overview of your protocol (not just specific smart contract functions). This saves wardens a lot of time wading through documentation.
 - [ ] See also: [this checklist in Notion](https://code4rena.notion.site/Key-info-for-Code4rena-sponsors-f60764c4c4574bbf8e7a6dbd72cc49b4#0cafa01e6201462e9f78677a39e09746)
 - [ ] Delete this checklist and all text above the line below when you're ready.
@@ -49,59 +49,61 @@ Under "SPONSORS ADD INFO HERE" heading below, include the following:
 ---
 
 # Livepeer Onchain Treasury Upgrade audit details
+
 - Total Prize Pool: $36,500 USDC
   - HM awards: $24,750 USDC
-  - Analysis awards: $1,500 USDC 
-  - QA awards: $750 USDC 
-  - Bot Race awards: $2,250 USDC 
+  - Analysis awards: $1,500 USDC
+  - QA awards: $750 USDC
+  - Bot Race awards: $2,250 USDC
   - Gas awards: $750 USDC
-  - Judge awards: $3,600 USDC 
+  - Judge awards: $3,600 USDC
   - Lookout awards: $2,400 USDC
   - Scout awards: $500 USDC
 - Join [C4 Discord](https://discord.gg/code4rena) to register
 - Submit findings [using the C4 form](https://code4rena.com/contests/2023-08-livepeer/submit)
 - [Read our guidelines for more details](https://docs.code4rena.com/roles/wardens)
-- Starts August 31, 2023 20:00 UTC 
+- Starts August 31, 2023 20:00 UTC
 - Ends September 6, 2023 20:00 UTC
 
 ## Automated Findings / Publicly Known Issues
 
 Automated findings output for the audit can be found [here](https://github.com/code-423n4/2023-08-livepeer/blob/main/bot-report.md) within 24 hours of audit opening.
 
-*Note for C4 wardens: Anything included in the automated findings output is considered a publicly known issue and is ineligible for awards.*
+_Note for C4 wardens: Anything included in the automated findings output is considered a publicly known issue and is ineligible for awards._
 
 [ ⭐️ SPONSORS ADD INFO HERE ]
 
 # Overview
 
-*Please provide some context about the code being audited, and identify any areas of specific concern in reviewing the code. (This is a good place to link to your docs, if you have them.)*
+_Please provide some context about the code being audited, and identify any areas of specific concern in reviewing the code. (This is a good place to link to your docs, if you have them.)_
 
 # Scope
 
-*List all files in scope in the table below (along with hyperlinks) -- and feel free to add notes here to emphasize areas of focus.*
+_List all files in scope in the table below (along with hyperlinks) -- and feel free to add notes here to emphasize areas of focus._
 
-*For line of code counts, we recommend running prettier with a 100-character line length, and using [cloc](https://github.com/AlDanial/cloc).* 
+_For line of code counts, we recommend running prettier with a 100-character line length, and using [cloc](https://github.com/AlDanial/cloc)._
 
-| Contract | SLOC | Purpose | Libraries used |  
-| ----------- | ----------- | ----------- | ----------- |
-| [contracts/folder/sample.sol](contracts/folder/sample.sol) | 123 | This contract does XYZ | [`@openzeppelin/*`](https://openzeppelin.com/contracts/) |
+| Contract                                                   | SLOC | Purpose                | Libraries used                                           |
+| ---------------------------------------------------------- | ---- | ---------------------- | -------------------------------------------------------- |
+| [contracts/folder/sample.sol](contracts/folder/sample.sol) | 123  | This contract does XYZ | [`@openzeppelin/*`](https://openzeppelin.com/contracts/) |
 
 ## Out of scope
 
-*List any files/contracts that are out of scope for this audit.*
+_List any files/contracts that are out of scope for this audit._
 
 # Additional Context
 
-*Describe any novel or unique curve logic or mathematical models implemented in the contracts*
+_Describe any novel or unique curve logic or mathematical models implemented in the contracts_
 
-*Sponsor, please confirm/edit the information below.*
+_Sponsor, please confirm/edit the information below._
 
-## Scoping Details 
+## Scoping Details
+
 ```
 - If you have a public code repo, please share it here:  https://github.com/livepeer/protocol
-- How many contracts are in scope?: 9  
-- Total SLoC for these contracts?: 509 
-- How many external imports are there?: 13 
+- How many contracts are in scope?: 9
+- Total SLoC for these contracts?: 509
+- How many external imports are there?: 13
 - How many separate interfaces and struct definitions are there for the contracts within scope?: 6
 - Does most of your code generally use composition or inheritance?: Composition
 - How many external calls?: 0
@@ -109,12 +111,12 @@ Automated findings output for the audit can be found [here](https://github.com/c
 - Is this an upgrade of an existing system?: Yes, add stake checkpointing support for the existing system, abstract it as an IERC5805 and set up an OpenZeppelin Governor on top of that.
 - Check all that apply (e.g. timelock, NFT, AMM, ERC20, rollups, etc.): Timelock function, Uses L2
 - Is there a need to understand a separate part of the codebase / get context in order to audit this part of the protocol?:  Yes.
-- Please describe required context:  One must be relatively familiar with the existing staking system (BondingManager) in order to verify that the stake checkpoints are being made correctly.  
+- Please describe required context:  One must be relatively familiar with the existing staking system (BondingManager) in order to verify that the stake checkpoints are being made correctly.
 - Does it use an oracle?:  No
 - Describe any novel or unique curve logic or mathematical models your code uses: None
 - Is this either a fork of or an alternate implementation of another project?:  No
 - Does it use a side-chain?: No
-- Describe any specific areas you would like addressed: 
+- Describe any specific areas you would like addressed:
   - make the stake checkpoint lookup inconsistent with what BondingManager would have returned in the corresponding round;
   - break the vote counting logic to behave differently from the specification;
   - exploit the LivepeerGovernor into running unsafe code;
@@ -124,6 +126,6 @@ Automated findings output for the audit can be found [here](https://github.com/c
 
 # Tests
 
-*Provide every step required to build the project from a fresh git clone, as well as steps to run the tests with a gas report.* 
+_Provide every step required to build the project from a fresh git clone, as well as steps to run the tests with a gas report._
 
-*Note: Many wardens run Slither as a first pass for testing.  Please document any known errors with no workaround.* 
+_Note: Many wardens run Slither as a first pass for testing. Please document any known errors with no workaround._
