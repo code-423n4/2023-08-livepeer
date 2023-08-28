@@ -4,6 +4,7 @@ import {
     functionSig,
     functionEncodedABI
 } from "../../utils/helpers"
+import expectCheckpoints from "./helpers/expectCheckpoints"
 import {constants} from "../../utils/constants"
 import math from "../helpers/math"
 import {assert} from "chai"
@@ -133,6 +134,114 @@ describe("BondingManager", () => {
                 await bondingManager.getTranscoderPoolMaxSize(),
                 4,
                 "wrong numActiveTranscoders"
+            )
+        })
+    })
+
+    describe("setTreasuryRewardCutRate", () => {
+        const FIFTY_PCT = math.precise.percPoints(BigNumber.from(50), 100)
+
+        let currentRound
+
+        beforeEach(async () => {
+            currentRound = 100
+
+            await fixture.roundsManager.setMockUint256(
+                functionSig("currentRound()"),
+                currentRound
+            )
+        })
+
+        it("should start as zero", async () => {
+            assert.equal(
+                await bondingManager.treasuryRewardCutRate(),
+                0,
+                "initial treasuryRewardCutRate not zero"
+            )
+        })
+
+        it("should fail if caller is not Controller owner", async () => {
+            await expect(
+                bondingManager
+                    .connect(signers[2])
+                    .setTreasuryRewardCutRate(FIFTY_PCT)
+            ).to.be.revertedWith("caller must be Controller owner")
+        })
+
+        it("should set only nextRoundTreasuryRewardCutRate", async () => {
+            const tx = await bondingManager.setTreasuryRewardCutRate(FIFTY_PCT)
+            await expect(tx)
+                .to.emit(bondingManager, "ParameterUpdate")
+                .withArgs("nextRoundTreasuryRewardCutRate")
+
+            assert.equal(
+                await bondingManager.nextRoundTreasuryRewardCutRate(),
+                FIFTY_PCT.toString(),
+                "wrong nextRoundTreasuryRewardCutRate"
+            )
+            assert.equal(
+                await bondingManager.treasuryRewardCutRate(),
+                0,
+                "wrong treasuryRewardCutRate"
+            )
+        })
+
+        it("should set treasuryRewardCutRate on the next round", async () => {
+            await bondingManager.setTreasuryRewardCutRate(FIFTY_PCT)
+
+            await fixture.roundsManager.setMockUint256(
+                functionSig("currentRound()"),
+                currentRound + 1
+            )
+            const tx = await fixture.roundsManager.execute(
+                bondingManager.address,
+                functionSig("setCurrentRoundTotalActiveStake()")
+            )
+            await expect(tx)
+                .to.emit(bondingManager, "ParameterUpdate")
+                .withArgs("treasuryRewardCutRate")
+
+            assert.equal(
+                await bondingManager.treasuryRewardCutRate(),
+                FIFTY_PCT.toString(),
+                "wrong treasuryRewardCutRate"
+            )
+            // sanity check that this hasn't changed either
+            assert.equal(
+                await bondingManager.nextRoundTreasuryRewardCutRate(),
+                FIFTY_PCT.toString(),
+                "wrong nextRoundTreasuryRewardCutRate"
+            )
+        })
+    })
+
+    describe("setTreasuryBalanceCeiling", () => {
+        const HUNDRED_LPT = ethers.utils.parseEther("100")
+
+        it("should start as zero", async () => {
+            assert.equal(
+                await bondingManager.treasuryBalanceCeiling(),
+                0,
+                "initial treasuryBalanceCeiling not zero"
+            )
+        })
+
+        it("should fail if caller is not Controller owner", async () => {
+            await expect(
+                bondingManager
+                    .connect(signers[2])
+                    .setTreasuryBalanceCeiling(HUNDRED_LPT)
+            ).to.be.revertedWith("caller must be Controller owner")
+        })
+
+        it("should set treasuryBalanceCeiling", async () => {
+            await bondingManager.setTreasuryBalanceCeiling(HUNDRED_LPT)
+
+            const newValue = await bondingManager.treasuryBalanceCeiling()
+            assert.equal(
+                newValue.toString(),
+                HUNDRED_LPT.toString(),
+                "wrong treasuryBalanceCeiling"
             )
         })
     })
@@ -1850,6 +1959,38 @@ describe("BondingManager", () => {
                 )
             })
         })
+
+        it("should checkpoint the delegator and transcoder states", async () => {
+            // make sure trancoder has a non-null `lastRewardRound`
+            await bondingManager.connect(transcoder0).reward()
+
+            const tx = await bondingManager
+                .connect(delegator)
+                .bond(1000, transcoder0.address)
+
+            await expectCheckpoints(
+                fixture,
+                tx,
+                {
+                    account: transcoder0.address,
+                    startRound: currentRound + 1,
+                    bondedAmount: 1000,
+                    delegateAddress: transcoder0.address,
+                    delegatedAmount: 2000,
+                    lastClaimRound: currentRound - 1,
+                    lastRewardRound: 100
+                },
+                {
+                    account: delegator.address,
+                    startRound: currentRound + 1,
+                    bondedAmount: 1000,
+                    delegateAddress: transcoder0.address,
+                    delegatedAmount: 0,
+                    lastClaimRound: currentRound,
+                    lastRewardRound: 0
+                }
+            )
+        })
     })
 
     describe("bondForWithHint", () => {
@@ -2292,6 +2433,53 @@ describe("BondingManager", () => {
                 )
             })
         })
+
+        it("should checkpoint the delegator and transcoder states", async () => {
+            // make sure trancoder has a non-null `lastRewardRound`
+            await bondingManager.connect(transcoder0).reward()
+
+            const {bondedAmount: startBondedAmount} =
+                await bondingManager.getDelegator(delegator1.address)
+            const {
+                bondedAmount: selfBondedAmount,
+                delegatedAmount: startDelegatedAmount
+            } = await bondingManager.getDelegator(transcoder0.address)
+
+            const tx = await bondingManager
+                .connect(thirdParty)
+                .bondForWithHint(
+                    1000,
+                    delegator1.address,
+                    transcoder0.address,
+                    ethers.constants.AddressZero,
+                    ethers.constants.AddressZero,
+                    ethers.constants.AddressZero,
+                    ethers.constants.AddressZero
+                )
+
+            await expectCheckpoints(
+                fixture,
+                tx,
+                {
+                    account: transcoder0.address,
+                    startRound: currentRound + 1,
+                    bondedAmount: selfBondedAmount,
+                    delegateAddress: transcoder0.address,
+                    delegatedAmount: startDelegatedAmount.add(1000),
+                    lastClaimRound: currentRound - 1,
+                    lastRewardRound: 100
+                },
+                {
+                    account: delegator1.address,
+                    startRound: currentRound + 1,
+                    bondedAmount: startBondedAmount.add(1000),
+                    delegateAddress: transcoder0.address,
+                    delegatedAmount: 0,
+                    lastClaimRound: currentRound,
+                    lastRewardRound: 0
+                }
+            )
+        })
     })
 
     describe("unbond", () => {
@@ -2449,6 +2637,36 @@ describe("BondingManager", () => {
             ).totalStake
 
             assert.equal(startActiveStake.toString(), endActiveStake.toString())
+        })
+
+        it("should checkpoint the delegator and transcoder states", async () => {
+            // make sure trancoder has a non-null `lastRewardRound`
+            await bondingManager.connect(transcoder).reward()
+
+            const tx = await bondingManager.connect(delegator).unbond(500)
+
+            await expectCheckpoints(
+                fixture,
+                tx,
+                {
+                    account: transcoder.address,
+                    startRound: currentRound + 2,
+                    bondedAmount: 1000,
+                    delegateAddress: transcoder.address,
+                    delegatedAmount: 1500,
+                    lastClaimRound: currentRound,
+                    lastRewardRound: currentRound + 1
+                },
+                {
+                    account: delegator.address,
+                    startRound: currentRound + 2,
+                    bondedAmount: 500,
+                    delegateAddress: transcoder.address,
+                    delegatedAmount: 1000, // delegator2 delegates to delegator
+                    lastClaimRound: currentRound + 1, // gets updated on unbond
+                    lastRewardRound: 0
+                }
+            )
         })
 
         describe("partial unbonding", () => {
@@ -2738,6 +2956,231 @@ describe("BondingManager", () => {
         })
     })
 
+    describe("checkpointBondingState", () => {
+        // Keep in mind that we only test the external checkpointBondingState function here and ignore all the internal
+        // checkpointing calls made automatically by BondingManager. Those internal calls are verified in the specific
+        // tests for each of the other functions where the automated checkpointing is expected to happen.
+
+        let transcoder
+        let delegator
+        let nonParticipant
+        let currentRound
+
+        beforeEach(async () => {
+            transcoder = signers[0]
+            delegator = signers[1]
+            nonParticipant = signers[99]
+            currentRound = 100
+
+            await fixture.roundsManager.setMockBool(
+                functionSig("currentRoundInitialized()"),
+                true
+            )
+            await fixture.roundsManager.setMockBool(
+                functionSig("currentRoundLocked()"),
+                false
+            )
+            await fixture.roundsManager.setMockUint256(
+                functionSig("currentRound()"),
+                currentRound
+            )
+
+            await bondingManager
+                .connect(transcoder)
+                .bond(1000, transcoder.address)
+            await bondingManager
+                .connect(transcoder)
+                .transcoder(50 * PERC_MULTIPLIER, 25 * PERC_MULTIPLIER)
+
+            await bondingManager
+                .connect(delegator)
+                .bond(1000, transcoder.address)
+        })
+
+        it("should fail if BondingVotes is not registered", async () => {
+            await fixture.register("BondingVotes", ZERO_ADDRESS)
+
+            await expect(
+                bondingManager.checkpointBondingState(transcoder.address)
+            ).to.be.revertedWith("function call to a non-contract account")
+        })
+
+        it("should call BondingVotes with non-participant zeroed state", async () => {
+            const tx = await bondingManager.checkpointBondingState(
+                nonParticipant.address
+            )
+
+            await expectCheckpoints(fixture, tx, {
+                account: nonParticipant.address,
+                startRound: currentRound + 1,
+                bondedAmount: 0,
+                delegateAddress: ZERO_ADDRESS,
+                delegatedAmount: 0,
+                lastClaimRound: 0,
+                lastRewardRound: 0
+            })
+        })
+
+        it("should call BondingVotes with current transcoder state", async () => {
+            const tx = await bondingManager.checkpointBondingState(
+                transcoder.address
+            )
+
+            await expectCheckpoints(fixture, tx, {
+                account: transcoder.address,
+                startRound: currentRound + 1,
+                bondedAmount: 1000,
+                delegateAddress: transcoder.address,
+                delegatedAmount: 2000, // total amount delegated towards transcoder
+                lastClaimRound: currentRound,
+                lastRewardRound: 0 // reward was never called
+            })
+        })
+
+        it("should call BondingVotes with current delegator state", async () => {
+            const tx = await bondingManager.checkpointBondingState(
+                delegator.address
+            )
+
+            await expectCheckpoints(fixture, tx, {
+                account: delegator.address,
+                startRound: currentRound + 1,
+                bondedAmount: 1000,
+                delegateAddress: transcoder.address,
+                delegatedAmount: 0, // no one delegates to the delegator :'(
+                lastClaimRound: currentRound,
+                lastRewardRound: 0 // reward was never called
+            })
+        })
+
+        describe("after reward call", () => {
+            beforeEach(async () => {
+                await fixture.roundsManager.setMockUint256(
+                    functionSig("currentRound()"),
+                    currentRound + 1
+                )
+
+                await fixture.minter.setMockUint256(
+                    functionSig("createReward(uint256,uint256)"),
+                    1000
+                )
+                await bondingManager.connect(transcoder).reward()
+            })
+
+            it("transcoder reward fields should be updated", async () => {
+                const tx = await bondingManager.checkpointBondingState(
+                    transcoder.address
+                )
+
+                await expectCheckpoints(fixture, tx, {
+                    account: transcoder.address,
+                    startRound: currentRound + 2,
+                    bondedAmount: 1000, // only updated by claimEarnings call
+                    delegateAddress: transcoder.address,
+                    delegatedAmount: 3000, // 1000 self bonded + 1000 delegated + 1000 rewards
+                    lastClaimRound: currentRound, // not updated by reward call
+                    lastRewardRound: currentRound + 1
+                })
+            })
+
+            it("delegator state shouldn't change", async () => {
+                const tx = await bondingManager.checkpointBondingState(
+                    delegator.address
+                )
+
+                await expectCheckpoints(fixture, tx, {
+                    account: delegator.address,
+                    startRound: currentRound + 2,
+                    bondedAmount: 1000,
+                    delegateAddress: transcoder.address,
+                    delegatedAmount: 0,
+                    lastClaimRound: currentRound,
+                    lastRewardRound: 0 // still zero, only gets set for transcoders
+                })
+            })
+
+            describe("after transcoder calls claimEarnings", () => {
+                beforeEach(async () => {
+                    await bondingManager
+                        .connect(transcoder)
+                        .claimEarnings(currentRound + 1)
+                })
+
+                it("transcoder bonded amount should be updated", async () => {
+                    const tx = await bondingManager.checkpointBondingState(
+                        transcoder.address
+                    )
+
+                    await expectCheckpoints(fixture, tx, {
+                        account: transcoder.address,
+                        startRound: currentRound + 2,
+                        bondedAmount: 1750, // 1000 + 1000 * (50% reward cut + 50% proportional stake of the rest)
+                        delegateAddress: transcoder.address,
+                        delegatedAmount: 3000,
+                        lastClaimRound: currentRound + 1,
+                        lastRewardRound: currentRound + 1
+                    })
+                })
+
+                it("delegator state shouldn't change", async () => {
+                    const tx = await bondingManager.checkpointBondingState(
+                        delegator.address
+                    )
+
+                    await expectCheckpoints(fixture, tx, {
+                        account: delegator.address,
+                        startRound: currentRound + 2,
+                        bondedAmount: 1000,
+                        delegateAddress: transcoder.address,
+                        delegatedAmount: 0,
+                        lastClaimRound: currentRound,
+                        lastRewardRound: 0
+                    })
+                })
+            })
+
+            describe("after delegator calls claimEarnings", () => {
+                beforeEach(async () => {
+                    await bondingManager
+                        .connect(delegator)
+                        .claimEarnings(currentRound + 1)
+                })
+
+                it("transcoder state shouldn't change", async () => {
+                    const tx = await bondingManager.checkpointBondingState(
+                        transcoder.address
+                    )
+
+                    await expectCheckpoints(fixture, tx, {
+                        account: transcoder.address,
+                        startRound: currentRound + 2,
+                        bondedAmount: 1000,
+                        delegateAddress: transcoder.address,
+                        delegatedAmount: 3000,
+                        lastClaimRound: currentRound,
+                        lastRewardRound: currentRound + 1
+                    })
+                })
+
+                it("delegator bonded amount should be updated", async () => {
+                    const tx = await bondingManager.checkpointBondingState(
+                        delegator.address
+                    )
+
+                    await expectCheckpoints(fixture, tx, {
+                        account: delegator.address,
+                        startRound: currentRound + 2,
+                        bondedAmount: 1250, // 1000 + 1000 * (1 - 50% reward cut) * (50% proportional stake)
+                        delegateAddress: transcoder.address,
+                        delegatedAmount: 0,
+                        lastClaimRound: currentRound + 1,
+                        lastRewardRound: 0
+                    })
+                })
+            })
+        })
+    })
+
     describe("rebond", () => {
         let transcoder
         let transcoder1
@@ -2834,6 +3277,38 @@ describe("BondingManager", () => {
             )
             assert.equal(lock[0], 0, "wrong lock amount should be 0")
             assert.equal(lock[1], 0, "wrong lock withdrawRound should be 0")
+        })
+
+        it("should checkpoint the delegator and transcoder states", async () => {
+            // make sure trancoder has a non-null `lastRewardRound`
+            await bondingManager.connect(transcoder).reward()
+
+            const tx = await bondingManager
+                .connect(delegator)
+                .rebond(unbondingLockID)
+
+            await expectCheckpoints(
+                fixture,
+                tx,
+                {
+                    account: transcoder.address,
+                    startRound: currentRound + 2,
+                    bondedAmount: 1000,
+                    delegateAddress: transcoder.address,
+                    delegatedAmount: 2000,
+                    lastClaimRound: currentRound,
+                    lastRewardRound: currentRound + 1
+                },
+                {
+                    account: delegator.address,
+                    startRound: currentRound + 2,
+                    bondedAmount: 1000,
+                    delegateAddress: transcoder.address,
+                    delegatedAmount: 0,
+                    lastClaimRound: currentRound + 1,
+                    lastRewardRound: 0
+                }
+            )
         })
 
         describe("current delegate is a registered transcoder", () => {
@@ -3078,6 +3553,41 @@ describe("BondingManager", () => {
             )
             assert.equal(lock[0], 0, "wrong lock amount should be 0")
             assert.equal(lock[1], 0, "wrong lock withdrawRound should be 0")
+        })
+
+        it("should checkpoint the delegator and transcoder states", async () => {
+            // make sure trancoder has a non-null `lastRewardRound`
+            await bondingManager.connect(transcoder).reward()
+
+            // Delegator unbonds rest of tokens transitioning to the Unbonded state
+            await bondingManager.connect(delegator).unbond(500)
+
+            const tx = await bondingManager
+                .connect(delegator)
+                .rebondFromUnbonded(transcoder.address, unbondingLockID)
+
+            await expectCheckpoints(
+                fixture,
+                tx,
+                {
+                    account: transcoder.address,
+                    startRound: currentRound + 2,
+                    bondedAmount: 1000,
+                    delegateAddress: transcoder.address,
+                    delegatedAmount: 1500,
+                    lastClaimRound: currentRound,
+                    lastRewardRound: currentRound + 1
+                },
+                {
+                    account: delegator.address,
+                    startRound: currentRound + 2,
+                    bondedAmount: 500,
+                    delegateAddress: transcoder.address,
+                    delegatedAmount: 0,
+                    lastClaimRound: currentRound + 1,
+                    lastRewardRound: 0
+                }
+            )
         })
 
         describe("new delegate is a registered transcoder", () => {
@@ -3588,6 +4098,63 @@ describe("BondingManager", () => {
                     expect(d1LastClaimRound).to.equal(currentRound + 3)
                     expect(d2LastClaimRound).to.equal(currentRound + 3)
                 })
+
+                it("should checkpoint both delegators and transcoders states", async () => {
+                    // make sure trancoder has a non-null `lastRewardRound`
+                    await bondingManager.connect(transcoder0).reward()
+
+                    const tx = await bondingManager
+                        .connect(delegator1)
+                        .transferBond(
+                            delegator2.address,
+                            1800,
+                            ZERO_ADDRESS,
+                            ZERO_ADDRESS,
+                            ZERO_ADDRESS,
+                            ZERO_ADDRESS
+                        )
+
+                    await expectCheckpoints(
+                        fixture,
+                        tx,
+                        {
+                            account: transcoder0.address,
+                            startRound: currentRound + 4,
+                            bondedAmount: 1000,
+                            delegateAddress: transcoder0.address,
+                            delegatedAmount: 1200,
+                            lastClaimRound: currentRound - 1,
+                            lastRewardRound: currentRound + 3
+                        },
+                        {
+                            account: delegator1.address,
+                            startRound: currentRound + 4,
+                            bondedAmount: 200,
+                            delegateAddress: transcoder0.address,
+                            delegatedAmount: 0,
+                            lastClaimRound: currentRound + 3,
+                            lastRewardRound: 0
+                        },
+                        {
+                            account: transcoder1.address,
+                            startRound: currentRound + 4,
+                            bondedAmount: 2000,
+                            delegateAddress: transcoder1.address,
+                            delegatedAmount: 5800,
+                            lastClaimRound: currentRound - 1,
+                            lastRewardRound: 0
+                        },
+                        {
+                            account: delegator2.address,
+                            startRound: currentRound + 4,
+                            bondedAmount: 3800,
+                            delegateAddress: transcoder1.address,
+                            delegatedAmount: 0,
+                            lastClaimRound: currentRound + 3,
+                            lastRewardRound: 0
+                        }
+                    )
+                })
             })
 
             describe("receiver is bonded to zero address", () => {
@@ -4090,6 +4657,20 @@ describe("BondingManager", () => {
             )
         })
 
+        it("should checkpoint the caller state", async () => {
+            const tx = await bondingManager.connect(transcoder).reward()
+
+            await expectCheckpoints(fixture, tx, {
+                account: transcoder.address,
+                startRound: currentRound + 2,
+                bondedAmount: 1000,
+                delegateAddress: transcoder.address,
+                delegatedAmount: 2000,
+                lastClaimRound: currentRound,
+                lastRewardRound: currentRound + 1
+            })
+        })
+
         it("should update caller with rewards if lastActiveStakeUpdateRound < currentRound", async () => {
             await fixture.roundsManager.setMockUint256(
                 functionSig("currentRound()"),
@@ -4216,6 +4797,222 @@ describe("BondingManager", () => {
             await expect(txRes)
                 .to.emit(bondingManager, "Reward")
                 .withArgs(transcoder.address, 1000)
+        })
+
+        describe("treasury contribution", () => {
+            const TREASURY_CUT = math.precise.percPoints(
+                BigNumber.from(631),
+                10000
+            ) // 6.31%
+
+            beforeEach(async () => {
+                await fixture.token.setMockUint256(
+                    functionSig("balanceOf(address)"),
+                    0
+                )
+
+                await bondingManager.setTreasuryRewardCutRate(TREASURY_CUT)
+                await bondingManager.setTreasuryBalanceCeiling(1000)
+
+                // treasury cut rate update only takes place on the next round
+                await fixture.roundsManager.setMockUint256(
+                    functionSig("currentRound()"),
+                    currentRound + 1
+                )
+                await fixture.roundsManager.execute(
+                    bondingManager.address,
+                    functionSig("setCurrentRoundTotalActiveStake()")
+                )
+            })
+
+            it("should update caller with rewards after treasury contribution", async () => {
+                const startDelegatedAmount = (
+                    await bondingManager.getDelegator(transcoder.address)
+                )[3]
+                const startTotalStake =
+                    await bondingManager.transcoderTotalStake(
+                        transcoder.address
+                    )
+                const startNextTotalStake =
+                    await bondingManager.nextRoundTotalActiveStake()
+                await bondingManager.connect(transcoder).reward()
+
+                const endDelegatedAmount = (
+                    await bondingManager.getDelegator(transcoder.address)
+                )[3]
+                const endTotalStake = await bondingManager.transcoderTotalStake(
+                    transcoder.address
+                )
+                const endNextTotalStake =
+                    await bondingManager.nextRoundTotalActiveStake()
+
+                const earningsPool =
+                    await bondingManager.getTranscoderEarningsPoolForRound(
+                        transcoder.address,
+                        currentRound + 1
+                    )
+
+                const expRewardFactor = constants.PERC_DIVISOR_PRECISE.add(
+                    math.precise.percPoints(
+                        BigNumber.from(469), // (1000 - 6.31% = 937) - 50% = 469 (cuts are calculated first and subtracted)
+                        BigNumber.from(1000)
+                    )
+                )
+                assert.equal(
+                    earningsPool.cumulativeRewardFactor.toString(),
+                    expRewardFactor.toString(),
+                    "should update cumulativeRewardFactor in earningsPool"
+                )
+
+                assert.equal(
+                    endDelegatedAmount.sub(startDelegatedAmount),
+                    937,
+                    "should update delegatedAmount with rewards after treasury cut"
+                )
+                assert.equal(
+                    endTotalStake.sub(startTotalStake),
+                    937,
+                    "should update transcoder's total stake in the pool with rewards after treasury cut"
+                )
+                assert.equal(
+                    endNextTotalStake.sub(startNextTotalStake),
+                    937,
+                    "should update next total stake with rewards after treasury cut"
+                )
+            })
+
+            it("should transfer tokens to the treasury", async () => {
+                const tx = await bondingManager.connect(transcoder).reward()
+
+                await expect(tx)
+                    .to.emit(fixture.minter, "TrustedTransferTokens")
+                    .withArgs(fixture.treasury.address, 63)
+            })
+
+            it("should emit TreasuryReward event", async () => {
+                const tx = await bondingManager.connect(transcoder).reward()
+
+                await expect(tx)
+                    .to.emit(bondingManager, "TreasuryReward")
+                    .withArgs(transcoder.address, fixture.treasury.address, 63)
+            })
+
+            describe("ceiling behavior", () => {
+                describe("under the limit", () => {
+                    beforeEach(async () => {
+                        await fixture.token.setMockUint256(
+                            functionSig("balanceOf(address)"),
+                            990
+                        )
+                    })
+
+                    it("should contribute normally", async () => {
+                        const tx = await bondingManager
+                            .connect(transcoder)
+                            .reward()
+
+                        await expect(tx)
+                            .to.emit(fixture.minter, "TrustedTransferTokens")
+                            .withArgs(fixture.treasury.address, 63)
+                    })
+
+                    it("should not clear treasuryRewardCutRate param", async () => {
+                        await bondingManager.connect(transcoder).reward()
+
+                        const cutRate =
+                            await bondingManager.treasuryRewardCutRate()
+                        assert.equal(
+                            cutRate.toString(),
+                            TREASURY_CUT.toString(),
+                            "cut rate updated"
+                        )
+                    })
+                })
+
+                const atCeilingTest = (title, balance) => {
+                    describe(title, () => {
+                        beforeEach(async () => {
+                            await fixture.token.setMockUint256(
+                                functionSig("balanceOf(address)"),
+                                balance
+                            )
+                        })
+
+                        it("should zero the nextRoundTreasuryRewardCutRate", async () => {
+                            const tx = await bondingManager
+                                .connect(transcoder)
+                                .reward()
+
+                            // it should still send treasury rewards
+                            await expect(tx).to.emit(
+                                fixture.minter,
+                                "TrustedTransferTokens"
+                            )
+                            await expect(tx).to.emit(
+                                bondingManager,
+                                "TreasuryReward"
+                            )
+
+                            await expect(tx)
+                                .to.emit(bondingManager, "ParameterUpdate")
+                                .withArgs("nextRoundTreasuryRewardCutRate")
+                            assert.equal(
+                                await bondingManager.nextRoundTreasuryRewardCutRate(),
+                                0
+                            )
+                        })
+
+                        it("should not mint any treasury rewards in the next round", async () => {
+                            await bondingManager.connect(transcoder).reward()
+
+                            await fixture.roundsManager.setMockUint256(
+                                functionSig("currentRound()"),
+                                currentRound + 2
+                            )
+                            await fixture.roundsManager.execute(
+                                bondingManager.address,
+                                functionSig("setCurrentRoundTotalActiveStake()")
+                            )
+
+                            const tx = await bondingManager
+                                .connect(transcoder)
+                                .reward()
+                            await expect(tx).not.to.emit(
+                                fixture.minter,
+                                "TrustedTransferTokens"
+                            )
+                            await expect(tx).not.to.emit(
+                                bondingManager,
+                                "TreasuryReward"
+                            )
+                        })
+
+                        it("should also clear treasuryRewardCutRate param in the next round", async () => {
+                            await bondingManager.connect(transcoder).reward()
+
+                            await fixture.roundsManager.setMockUint256(
+                                functionSig("currentRound()"),
+                                currentRound + 2
+                            )
+                            await fixture.roundsManager.execute(
+                                bondingManager.address,
+                                functionSig("setCurrentRoundTotalActiveStake()")
+                            )
+
+                            const cutRate =
+                                await bondingManager.treasuryRewardCutRate()
+                            assert.equal(
+                                cutRate.toNumber(),
+                                0,
+                                "cut rate not cleared"
+                            )
+                        })
+                    })
+                }
+
+                atCeilingTest("when at limit", 1000)
+                atCeilingTest("when above limit", 1500)
+            })
         })
     })
 
@@ -4718,6 +5515,38 @@ describe("BondingManager", () => {
             )
         })
 
+        it("should checkpoint the transcoder state", async () => {
+            // make sure trancoder has a non-null `lastRewardRound`
+            await bondingManager.connect(transcoder).reward()
+
+            const startBondedAmount = (
+                await bondingManager.getDelegator(transcoder.address)
+            )[0].toNumber()
+            const tx = await fixture.verifier.execute(
+                bondingManager.address,
+                functionEncodedABI(
+                    "slashTranscoder(address,address,uint256,uint256)",
+                    ["address", "uint256", "uint256", "uint256"],
+                    [
+                        transcoder.address,
+                        constants.NULL_ADDRESS,
+                        PERC_DIVISOR / 2,
+                        0
+                    ]
+                )
+            )
+
+            await expectCheckpoints(fixture, tx, {
+                account: transcoder.address,
+                startRound: currentRound + 2,
+                bondedAmount: startBondedAmount / 2,
+                delegateAddress: transcoder.address,
+                delegatedAmount: startBondedAmount / 2,
+                lastClaimRound: currentRound + 1,
+                lastRewardRound: currentRound + 1
+            })
+        })
+
         describe("transcoder is bonded", () => {
             it("updates delegated amount and next total stake tokens", async () => {
                 const startNextTotalStake =
@@ -5194,6 +6023,23 @@ describe("BondingManager", () => {
                 currentRound + 1,
                 "should update caller's lastClaimRound to the current round"
             )
+        })
+
+        it("should checkpoint the caller state", async () => {
+            const tx = await bondingManager
+                .connect(delegator1)
+                .claimEarnings(currentRound + 1)
+
+            await expectCheckpoints(fixture, tx, {
+                account: delegator1.address,
+                startRound: currentRound + 2,
+                bondedAmount:
+                    3000 + Math.floor((delegatorRewards * 3000) / 10000),
+                delegateAddress: transcoder.address,
+                delegatedAmount: 0,
+                lastClaimRound: currentRound + 1,
+                lastRewardRound: 0
+            })
         })
 
         it("updates transcoders cumulativeRewardFactor for _endRound EarningsPool if reward is not called for _endRound yet", async () => {
@@ -6333,10 +7179,16 @@ describe("BondingManager", () => {
 
     describe("setCurrentRoundTotalActiveStake", () => {
         let transcoder
+        let currentRound
 
         beforeEach(async () => {
             transcoder = signers[0]
+            currentRound = 100
 
+            await fixture.roundsManager.setMockUint256(
+                functionSig("currentRound()"),
+                currentRound - 1
+            )
             await fixture.roundsManager.setMockBool(
                 functionSig("currentRoundInitialized()"),
                 true
@@ -6350,6 +7202,11 @@ describe("BondingManager", () => {
                 .connect(transcoder)
                 .bond(1000, transcoder.address)
             await bondingManager.connect(transcoder).transcoder(5, 10)
+
+            await fixture.roundsManager.setMockUint256(
+                functionSig("currentRound()"),
+                currentRound
+            )
         })
 
         it("fails if caller is not RoundsManager", async () => {
@@ -6367,6 +7224,19 @@ describe("BondingManager", () => {
                 await bondingManager.currentRoundTotalActiveStake(),
                 1000
             )
+        })
+
+        it("should checkpoint the total active stake in the current round", async () => {
+            assert.equal(await bondingManager.currentRoundTotalActiveStake(), 0)
+
+            const tx = await fixture.roundsManager.execute(
+                bondingManager.address,
+                functionSig("setCurrentRoundTotalActiveStake()")
+            )
+
+            await expect(tx)
+                .to.emit(fixture.bondingVotes, "CheckpointTotalActiveStake")
+                .withArgs(1000, currentRound)
         })
     })
 
