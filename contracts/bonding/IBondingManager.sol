@@ -11,6 +11,7 @@ interface IBondingManager {
     event TranscoderDeactivated(address indexed transcoder, uint256 deactivationRound);
     event TranscoderSlashed(address indexed transcoder, address finder, uint256 penalty, uint256 finderReward);
     event Reward(address indexed transcoder, uint256 amount);
+    event TreasuryReward(address indexed transcoder, address treasury, uint256 amount);
     event Bond(
         address indexed newDelegate,
         address indexed oldDelegate,
@@ -78,4 +79,17 @@ interface IBondingManager {
     function isActiveTranscoder(address _transcoder) external view returns (bool);
 
     function getTotalBonded() external view returns (uint256);
+
+    function nextRoundTotalActiveStake() external view returns (uint256);
+
+    function getTranscoderEarningsPoolForRound(address _transcoder, uint256 _round)
+        external
+        view
+        returns (
+            uint256 totalStake,
+            uint256 transcoderRewardCut,
+            uint256 transcoderFeeShare,
+            uint256 cumulativeRewardFactor,
+            uint256 cumulativeFeeFactor
+        );
 }
