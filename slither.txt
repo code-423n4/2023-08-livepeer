@@ -1,0 +1,156 @@
+'solc --version' running
+'solc contracts/Controller.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format --allow-paths .,/Users/victorges/workspace/src/github.com/livepeer/2023-08-livepeer/contracts' running
+'solc --version' running
+'solc contracts/ServiceRegistry.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format --allow-paths .,/Users/victorges/workspace/src/github.com/livepeer/2023-08-livepeer/contracts' running
+'solc --version' running
+'solc contracts/Manager.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format --allow-paths .,/Users/victorges/workspace/src/github.com/livepeer/2023-08-livepeer/contracts' running
+'solc --version' running
+'solc contracts/ManagerProxyTarget.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format --allow-paths .,/Users/victorges/workspace/src/github.com/livepeer/2023-08-livepeer/contracts' running
+'solc --version' running
+'solc contracts/IManager.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format --allow-paths .,/Users/victorges/workspace/src/github.com/livepeer/2023-08-livepeer/contracts' running
+'solc --version' running
+'solc contracts/ManagerProxy.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format --allow-paths .,/Users/victorges/workspace/src/github.com/livepeer/2023-08-livepeer/contracts' running
+'solc --version' running
+'solc contracts/IController.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format --allow-paths .,/Users/victorges/workspace/src/github.com/livepeer/2023-08-livepeer/contracts' running
+INFO:Detectors:[92m
+Pragma version0.8.9 (contracts/Controller.sol#2) allows old versions
+Pragma version0.8.9 (contracts/IController.sol#2) allows old versions
+Pragma version0.8.9 (contracts/IManager.sol#2) allows old versions
+Pragma version0.8.9 (contracts/zeppelin/Ownable.sol#2) allows old versions
+Pragma version0.8.9 (contracts/zeppelin/Pausable.sol#2) allows old versions
+solc-0.8.9 is not recommended for deployment
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity[0m
+INFO:Detectors:[92m
+Parameter Controller.setContractInfo(bytes32,address,bytes20)._id (contracts/Controller.sol#30) is not in mixedCase
+Parameter Controller.setContractInfo(bytes32,address,bytes20)._contractAddress (contracts/Controller.sol#31) is not in mixedCase
+Parameter Controller.setContractInfo(bytes32,address,bytes20)._gitCommitHash (contracts/Controller.sol#32) is not in mixedCase
+Parameter Controller.updateController(bytes32,address)._id (contracts/Controller.sol#45) is not in mixedCase
+Parameter Controller.updateController(bytes32,address)._controller (contracts/Controller.sol#45) is not in mixedCase
+Parameter Controller.getContractInfo(bytes32)._id (contracts/Controller.sol#53) is not in mixedCase
+Parameter Controller.getContract(bytes32)._id (contracts/Controller.sol#61) is not in mixedCase
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions[0m
+INFO:Detectors:[92m
+Manager._onlyControllerOwner() (contracts/Manager.sol#53-55) is never used and should be removed
+Manager._whenSystemNotPaused() (contracts/Manager.sol#57-59) is never used and should be removed
+Manager._whenSystemPaused() (contracts/Manager.sol#61-63) is never used and should be removed
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#dead-code[0m
+INFO:Detectors:[92m
+Pragma version0.8.9 (contracts/IController.sol#2) allows old versions
+Pragma version0.8.9 (contracts/IManager.sol#2) allows old versions
+Pragma version0.8.9 (contracts/Manager.sol#2) allows old versions
+Pragma version0.8.9 (contracts/ManagerProxyTarget.sol#2) allows old versions
+Pragma version0.8.9 (contracts/ServiceRegistry.sol#2) allows old versions
+Pragma version0.8.9 (contracts/zeppelin/Ownable.sol#2) allows old versions
+Pragma version0.8.9 (contracts/zeppelin/Pausable.sol#2) allows old versions
+solc-0.8.9 is not recommended for deployment
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity[0m
+INFO:Detectors:[92m
+Parameter Manager.setController(address)._controller (contracts/Manager.sol#43) is not in mixedCase
+Parameter ServiceRegistry.setServiceURI(string)._serviceURI (contracts/ServiceRegistry.sol#32) is not in mixedCase
+Parameter ServiceRegistry.getServiceURI(address)._addr (contracts/ServiceRegistry.sol#42) is not in mixedCase
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions[0m
+INFO:Detectors:[92m
+IController (contracts/IController.sol#6-18) does not implement functions:
+	- IController.getContract(bytes32) (contracts/IController.sol#17)
+	- IController.setContractInfo(bytes32,address,bytes20) (contracts/IController.sol#9-13)
+	- IController.updateController(bytes32,address) (contracts/IController.sol#15)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unimplemented-functions[0m
+INFO:Detectors:[92m
+ManagerProxyTarget.targetContractId (contracts/ManagerProxyTarget.sol#15) should be constant 
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#state-variables-that-could-be-declared-constant[0m
+INFO:Detectors:[92m
+Manager._onlyControllerOwner() (contracts/Manager.sol#53-55) is never used and should be removed
+Manager._whenSystemNotPaused() (contracts/Manager.sol#57-59) is never used and should be removed
+Manager._whenSystemPaused() (contracts/Manager.sol#61-63) is never used and should be removed
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#dead-code[0m
+INFO:Detectors:[92m
+Pragma version0.8.9 (contracts/IController.sol#2) allows old versions
+Pragma version0.8.9 (contracts/IManager.sol#2) allows old versions
+Pragma version0.8.9 (contracts/Manager.sol#2) allows old versions
+Pragma version0.8.9 (contracts/zeppelin/Ownable.sol#2) allows old versions
+Pragma version0.8.9 (contracts/zeppelin/Pausable.sol#2) allows old versions
+solc-0.8.9 is not recommended for deployment
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity[0m
+INFO:Detectors:[92m
+Parameter Manager.setController(address)._controller (contracts/Manager.sol#43) is not in mixedCase
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions[0m
+INFO:Detectors:[92m
+IController (contracts/IController.sol#6-18) does not implement functions:
+	- IController.getContract(bytes32) (contracts/IController.sol#17)
+	- IController.setContractInfo(bytes32,address,bytes20) (contracts/IController.sol#9-13)
+	- IController.updateController(bytes32,address) (contracts/IController.sol#15)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unimplemented-functions[0m
+INFO:Detectors:[92m
+Manager._onlyControllerOwner() (contracts/Manager.sol#53-55) is never used and should be removed
+Manager._whenSystemNotPaused() (contracts/Manager.sol#57-59) is never used and should be removed
+Manager._whenSystemPaused() (contracts/Manager.sol#61-63) is never used and should be removed
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#dead-code[0m
+INFO:Detectors:[92m
+Pragma version0.8.9 (contracts/IController.sol#2) allows old versions
+Pragma version0.8.9 (contracts/IManager.sol#2) allows old versions
+Pragma version0.8.9 (contracts/Manager.sol#2) allows old versions
+Pragma version0.8.9 (contracts/ManagerProxyTarget.sol#2) allows old versions
+Pragma version0.8.9 (contracts/zeppelin/Ownable.sol#2) allows old versions
+Pragma version0.8.9 (contracts/zeppelin/Pausable.sol#2) allows old versions
+solc-0.8.9 is not recommended for deployment
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity[0m
+INFO:Detectors:[92m
+Parameter Manager.setController(address)._controller (contracts/Manager.sol#43) is not in mixedCase
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions[0m
+INFO:Detectors:[92m
+IController (contracts/IController.sol#6-18) does not implement functions:
+	- IController.getContract(bytes32) (contracts/IController.sol#17)
+	- IController.setContractInfo(bytes32,address,bytes20) (contracts/IController.sol#9-13)
+	- IController.updateController(bytes32,address) (contracts/IController.sol#15)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unimplemented-functions[0m
+INFO:Detectors:[92m
+ManagerProxyTarget.targetContractId (contracts/ManagerProxyTarget.sol#15) should be constant 
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#state-variables-that-could-be-declared-constant[0m
+INFO:Detectors:[92m
+Pragma version0.8.9 (contracts/IManager.sol#2) allows old versions
+solc-0.8.9 is not recommended for deployment
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity[0m
+INFO:Detectors:[92m
+ManagerProxy._fallback() (contracts/ManagerProxy.sol#50-85) uses assembly
+	- INLINE ASM (contracts/ManagerProxy.sol#54-84)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#assembly-usage[0m
+INFO:Detectors:[92m
+Manager._onlyControllerOwner() (contracts/Manager.sol#53-55) is never used and should be removed
+Manager._whenSystemNotPaused() (contracts/Manager.sol#57-59) is never used and should be removed
+Manager._whenSystemPaused() (contracts/Manager.sol#61-63) is never used and should be removed
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#dead-code[0m
+INFO:Detectors:[92m
+Pragma version0.8.9 (contracts/IController.sol#2) allows old versions
+Pragma version0.8.9 (contracts/IManager.sol#2) allows old versions
+Pragma version0.8.9 (contracts/Manager.sol#2) allows old versions
+Pragma version0.8.9 (contracts/ManagerProxy.sol#2) allows old versions
+Pragma version0.8.9 (contracts/ManagerProxyTarget.sol#2) allows old versions
+Pragma version0.8.9 (contracts/zeppelin/Ownable.sol#2) allows old versions
+Pragma version0.8.9 (contracts/zeppelin/Pausable.sol#2) allows old versions
+solc-0.8.9 is not recommended for deployment
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity[0m
+INFO:Detectors:[92m
+Parameter Manager.setController(address)._controller (contracts/Manager.sol#43) is not in mixedCase
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions[0m
+INFO:Detectors:[92m
+IController (contracts/IController.sol#6-18) does not implement functions:
+	- IController.getContract(bytes32) (contracts/IController.sol#17)
+	- IController.setContractInfo(bytes32,address,bytes20) (contracts/IController.sol#9-13)
+	- IController.updateController(bytes32,address) (contracts/IController.sol#15)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unimplemented-functions[0m
+INFO:Detectors:[92m
+ManagerProxyTarget.targetContractId (contracts/ManagerProxyTarget.sol#15) should be immutable 
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#state-variables-that-could-be-declared-immutable[0m
+INFO:Detectors:[92m
+Pragma version0.8.9 (contracts/IController.sol#2) allows old versions
+Pragma version0.8.9 (contracts/zeppelin/Ownable.sol#2) allows old versions
+Pragma version0.8.9 (contracts/zeppelin/Pausable.sol#2) allows old versions
+solc-0.8.9 is not recommended for deployment
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity[0m
+INFO:Detectors:[92m
+IController (contracts/IController.sol#6-18) does not implement functions:
+	- IController.getContract(bytes32) (contracts/IController.sol#17)
+	- IController.setContractInfo(bytes32,address,bytes20) (contracts/IController.sol#9-13)
+	- IController.updateController(bytes32,address) (contracts/IController.sol#15)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unimplemented-functions[0m
+INFO:Slither:contracts analyzed (34 contracts with 88 detectors), 75 result(s) found

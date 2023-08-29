@@ -1,0 +1,14 @@
+test/gas-report/checkpoints.js
+test/integration/BondingVotes.js
+test/integration/Delegation.js
+test/integration/Earnings.js
+test/integration/LivepeerGovernor.ts
+test/integration/PoolUpdatesWithHints.js
+test/integration/Rewards.js
+test/integration/RoundInitialization.js
+test/integration/TicketFlow.js
+test/unit/BondingManager.js
+test/unit/BondingVotes.js
+test/unit/EarningsPool.js
+test/unit/GovernorCountingOverridable.js
+test/unit/SortedArrays.js
