@@ -1,0 +1,10 @@
+contracts/bonding/BondingManager.sol
+contracts/bonding/BondingVotes.sol
+contracts/bonding/IBondingManager.sol
+contracts/bonding/IBondingVotes.sol
+contracts/bonding/libraries/EarningsPoolLIP36.sol
+contracts/bonding/libraries/SortedArrays.sol
+contracts/treasury/GovernorCountingOverridable.sol
+contracts/treasury/IVotes.sol
+contracts/treasury/LivepeerGovernor.sol
+contracts/treasury/Treasury.sol

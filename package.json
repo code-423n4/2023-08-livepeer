@@ -21,6 +21,8 @@
     "compile": "npx hardhat compile",
     "test:coverage": "npx hardhat coverage",
     "test": "npx hardhat test",
+    "test:audit": "npx hardhat test $(cat scope-tests.txt)",
+    "test:audit-gas": "REPORT_GAS=true npx hardhat test $(cat scope-tests.txt | grep -v unit)",
     "test:unit": "npx hardhat test test/unit/*.*",
     "test:integration": "npx hardhat test test/integration/**",
     "test:gas": "REPORT_GAS=true npx hardhat test test/gas-report/*",
