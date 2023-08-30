@@ -1,13 +1,13 @@
 # Livepeer Onchain Treasury Upgrade audit details
 
-- Total Prize Pool: $36,500 USDC
-  - HM awards: $24,000 USDC
-  - Analysis awards: $1,500 USDC
-  - QA awards: $750 USDC
-  - Bot Race awards: $2,250 USDC
-  - Gas awards: $1500 USDC
-  - Judge awards: $3,600 USDC
-  - Lookout awards: $2,400 USDC
+- Total Prize Pool: $55,000 USDC
+  - HM awards: $37,125 USDC
+  - Analysis awards: $2.250 USDC
+  - QA awards: $1,125 USDC
+  - Bot Race awards: $3,375 USDC
+  - Gas awards: $1,125 USDC
+  - Judge awards: $5,500 USDC
+  - Lookout awards: $4,000 USDC
   - Scout awards: $500 USDC
 - Join [C4 Discord](https://discord.gg/code4rena) to register
 - Submit findings [using the C4 form](https://code4rena.com/contests/2023-08-livepeer-onchain-treasury-upgrade/submit)
