@@ -40,6 +40,12 @@ This upgrade creates an onchain community treasury for the Livepeer protocol fun
 
 All referenced LIPs can be used as formal specifications for the code in scope.
 
+## Demo Video
+
+Here is a video for quick overview of the Livepeer protocol and this audit contest: [Livepeer On-Chain Treasury Upgrade Audit Overview](https://lvpr.tv/?v=9ae9krf8q296csr8)
+
+In the video we also show a test explorer to interact with this upgrade. If you are interested in seeing it working on the higher level, feel free to follow [this guide](https://livepeer.notion.site/Testing-the-Livepeer-Treasury-a25b5660a3bb4482a6daa57fe06a2d00?pvs=4).
+
 # Scope
 
 See [scope.txt](https://github.com/code-423n4/2023-08-livepeer/blob/main/scope.txt) for a list of all files/contracts in scope. Some contracts already existed in the protocol and were only modified in this upgrade. Check the diff on:
