@@ -1,0 +1,1181 @@
+==============================================================
+Guild: Code4rena
+Channel: ARCHIVE-Q3-2023 / livepeer-aug31
+==============================================================
+
+[08/29/2023 18:33] kartoonjoy (pinned)
+👋 Hello and welcome to the audit channel for the $55,000 USDC **Livepeer Onchain Treasury Upgrade** audit!
+
+📆 Audit opens 08/31/2023 20:00 (20:00 UTC) and runs through 09/06/2023 20:00 (20:00 UTC) (6 days).
+
+Please give a warm welcome to the Livepeer team, particularly @victorges, @dob | Livepeer, @chase, who will be available for questions either here in the channel or via DM in the US Eastern Time, Brasilia Standard Time timezone(s).
+
+We'll be posting relevant links, documentation, etc. here, so if you intend to participate in this audit, consider enabling notifications for this channel. 🐺 ⏰
+
+Audit Page: https://code4rena.com/contests/2023-08-livepeer-onchain-treasury-upgrade#top
+
+{Embed}
+https://code4rena.com/contests/2023-08-livepeer-onchain-treasury-upgrade
+Code4rena
+Code4rena is a competitive audit platform that finds more high-severity vulnerabilities, more quickly than any other auditing method.
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/c4-og-banner-4684B.png
+
+
+[08/29/2023 18:34] kartoonjoy
+Pinned a message.
+
+
+[08/31/2023 01:17] thedob
+Hi all. Looking forward to getting started tomorrow. We'll be here in the chat during the duration of the audit to help answer questions. Livepeer is one of the longest running Ethereum based protocols, having been on chain since early 2018. We'll be auditing an exciting upgrade. More details coming tomorrow 🙂
+
+{Reactions}
+hi5 (17) 🔥 (9) orchestrator_livepeer_academy (4) 
+
+[08/31/2023 20:35] thedob
+And The Livepeer Delta Treasury audit is now live. This protocol upgrade introduces an on chain treasury of LPT tokens to the Livepeer protocol. The treasury will be governed by tokenholders using our custom implementation of the OpenZeppelin Governor Framework in use by many other on chain treasuries. We'll be auditing 1) whether the code introduced to track the voting power on treasury proposals breaks any of the existing stake accounting logic, and 2) whether the treasury proposals, voting, and fund-release process itself is secure or can be exploited. 
+
+The contest is open here: https://code4rena.com/contests/2023-08-livepeer-onchain-treasury-upgrade#top
+
+And here is an introductory video on the contest and protocol: https://lvpr.tv/?v=9ae9krf8q296csr8
+
+@victorges @chase and myself @dob | Livepeer will be available in the chat to answer questions, mainly on US East and Brasilia Standard time. Let's go!
+
+{Embed}
+https://code4rena.com/contests/2023-08-livepeer-onchain-treasury-upgrade
+Code4rena
+Code4rena is a competitive audit platform that finds more high-severity vulnerabilities, more quickly than any other auditing method.
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/c4-og-banner-7DE3A.png
+
+{Reactions}
+👍 ✅ (2) 
+
+[08/31/2023 21:58] victorges
+Hey all! I'm Victor, lead developer on the Delta project for the Livepeer Treasury being audited in this contest. I'll be around for any kind of questions you have. Keeping an eye here, but feel free to tag or even DM me for help! :lfg:
+
+{Reactions}
+💪 (2) 👍 
+
+[08/31/2023 22:15] orbitalautodev
+I was able to get everything running, except the hardhat tests.
+
+
+[08/31/2023 22:16] victorges
+what issue are you having with them?
+
+
+[08/31/2023 22:16] orbitalautodev
+Error: error:0308010C:digital envelope routines::unsupported
+    at new Hash (node:internal/crypto/hash:67:19)
+    at Object.createHash (node:crypto:133:10)
+
+
+[08/31/2023 22:17] orbitalautodev
+opensslErrorStack: [ 'error:03000086:digital envelope routines::initialization error' ],
+  library: 'digital envelope routines',
+  reason: 'unsupported',
+  code: 'ERR_OSSL_EVP_UNSUPPORTED'
+
+
+[08/31/2023 22:17] orbitalautodev
+I'm on Ubuntu 22.04
+
+
+[08/31/2023 22:18] victorges
+can you share your `node --version` and `openssl version`? I think it might be sth with either
+
+
+[08/31/2023 22:19] orbitalautodev
+I think I just fixed the problem with this command: export NODE_OPTIONS=--openssl-legacy-provider
+
+{Reactions}
+🙌 
+
+[08/31/2023 22:19] orbitalautodev
+All is well.
+
+{Reactions}
+🙏 
+
+[08/31/2023 22:20] victorges
+cool! thanks for sharing
+
+{Reactions}
+👍 
+
+[08/31/2023 22:37] orbitalautodev
+Interesting tidbit: vscode hates this option: export NODE_OPTIONS=--openssl-legacy-provider, so you may need to run tests in a separate terminal if you're running ubuntu.
+
+{Reactions}
+👍 
+
+[08/31/2023 22:44] victorges
+if the separate terminal is too cumbersome you *may* be able to edit the commands on the package.json to include that flag as well like
+```
+    "test": "NODE_OPTIONS=--openssl-legacy-provider npx hardhat test",
+```
+(or even as explicit flags to `npx`, tho not sure if that would work)
+
+
+[08/31/2023 23:23] orbitalautodev
+So BondingManager is already deployed?
+
+
+[08/31/2023 23:24] victorges
+yeah, with the version before these changes
+- https://arbiscan.io/address/0x35Bcf3c30594191d53231E4FF333E8A770453e40
+- https://github.com/code-423n4/2023-08-livepeer/commit/4ce4f0c8d6debc28ca66ef760d9d04749a5f9686
+
+
+[08/31/2023 23:26] orbitalautodev
+OK so this is an upgrade that will be re-deployed?
+
+
+[08/31/2023 23:27] victorges
+correct. we use a custom proxy contract (check `ManagerProxy` for docs) and deploy only the target contract, keeping the same state
+
+
+[08/31/2023 23:28] orbitalautodev
+Is this the first upgrade thru the proxy contract?
+
+
+[08/31/2023 23:29] victorges (pinned)
+not really, you can check all the history here
+https://docs.livepeer.org/reference/deployed-contract-addresses
+
+{Embed}
+https://docs.livepeer.org/reference/deployed-contract-addresses
+Contract Addresses - Livepeer Documentation
+Explore guides and a variety of resources to help you get started adding live and on demand video experiences to your application using the open and decentralized Livepeer Protocol.
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/og-7822E.jpg
+
+{Reactions}
+✅ 
+
+[08/31/2023 23:30] orbitalautodev
+Got it.
+
+
+[09/01/2023 05:37] alymurtazamemon
+WOW 🔥
+
+{Attachments}
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/Screenshot_2023-09-01_at_10.37.26_AM-73DBB.png
+
+{Reactions}
+💯 (3) 
+
+[09/01/2023 05:39] alymurtazamemon
+So LPT is a inflationary token. right?
+
+
+[09/01/2023 05:39] alymurtazamemon
+@victorges
+
+
+[09/01/2023 05:39] cosine_function
+@victorges What is the Verifier role and is it trusted? Could you explain the slashTranscoder function?
+
+
+[09/01/2023 05:40] alymurtazamemon
+Team, who are the transcoding providers and what they do?
+
+
+[09/01/2023 06:29] alymurtazamemon
+I got it!
+
+Transcoding is the process of taking a raw video file and reformatting it so that no matter what bandwidth you have - whether 2g or 5g - and no matter what device, you're ensured the most optimal viewing experience.
+
+So transcoding providers provides this service for reward, right team?
+
+{Reactions}
+👍 
+
+[09/01/2023 06:56] alymurtazamemon
+Team
+
+Orchestrators and Delegators both will be the Livepeer token (LPT) holders.
+
+The question is why the delegator stack their LPT to orchestrators when he can be orchestrators with same tokens?
+
+
+[09/01/2023 06:57] alymurtazamemon
+Is it for those who do not have resouces to become orchestrators but have LPT?
+
+
+[09/01/2023 09:09] deth2814
+I'm not a sponsor, but this is what I assume.
+
+
+[09/01/2023 09:09] deth2814
+Here is a good overview of the two roles and the idea behind livepeer. https://livepeer.org/primer
+
+{Embed}
+https://livepeer.org/primer
+Livepeer - A 10-minute Primer
+Through storytelling, illustration, and data, the Livepeer Primer explains, at a high level, the problem Livepeer solves, and how it works.
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/share-image-3ED4E.jpg
+
+
+[09/01/2023 09:10] 0xg03.14
+and the delegators are not experts in transcoding
+
+
+[09/01/2023 09:33] thedob
+Hi. That is correct. Token holding delegators are not experts in transcoding. They probably do not have GPUs nor know how to run nodes 24/7. So they stake towards orchestrators.
+
+
+[09/01/2023 09:33] thedob
+Yes. LPT is inflationary, with new LPT minted each round.
+
+{Reactions}
+👍 
+
+[09/01/2023 09:34] 0xnevi
+Hello livepeer team will be hopping on this soon glhf to all wardens!
+
+{Reactions}
+🔥 (2) 
+
+[09/01/2023 09:38] cosine_function
+@victorges sent you a DM
+
+{Reactions}
+👍 
+
+[09/01/2023 09:40] thedob
+Hmm are you referencing those roles from the white paper or active protocol code? The paper is outdated
+
+
+[09/01/2023 09:41] cosine_function
+I reference to the BondingManager.sol contract in the codebase
+
+
+[09/01/2023 09:45] thedob
+I see. Yes slashing is not currently active in the protocol, so this is not invokable I believe. However I will be back to you later with the exact mechanics that ensure that including the verifier role state management. cc @Cosine
+
+
+[09/01/2023 10:10] deth2814
+@dob | Livepeer sent a DM
+
+
+[09/01/2023 10:13] cosine_function
+Thank you!
+
+
+[09/01/2023 10:18] ivand5690
+A question: are Transcoders and Orchestrators the same?
+
+{Reactions}
+👍 
+
+[09/01/2023 10:29] alymurtazamemon
+yes
+
+
+[09/01/2023 10:30] alymurtazamemon
+see this
+
+
+[09/01/2023 10:30] alymurtazamemon
+@0xE1
+
+
+[09/01/2023 10:33] ivand5690
+Thank you, one more thing
+Imagine I am an Orchestrator. I get paid anyways by the broadcaster, now someone stakes in me. It means I have to share my profit  with the stakeholders in stead of keeping it all for me.  That brings me to - Why should I want stakers? I don't get that?
+
+{Reactions}
+🚀 
+
+[09/01/2023 10:35] b353n
+yeah same question
+
+
+[09/01/2023 10:36] b353n
+Maybe more stack = more rewards .. or something like that
+
+
+[09/01/2023 10:37] ivand5690
+I assume that too but it is not described anywhere. Just messaged Dob, I will let you know when he replies.
+
+
+[09/01/2023 10:40] b353n
+Thanks buddy
+
+{Reactions}
+😎 
+
+[09/01/2023 10:52] deth2814
+From what I understand, more stake = more work for transcoders = more rewards for both transcoders and delegators
+
+{Reactions}
+👍 
+
+[09/01/2023 10:52] alymurtazamemon
+Not every Orchestrator has the time or expertise to perform their jobs 24/7, due to that there is delegator who will perform this job for them and earn reward share.
+
+
+[09/01/2023 10:53] alymurtazamemon
+you guys should read this, it is very helpful https://livepeer.org/primer
+
+{Embed}
+https://livepeer.org/primer
+Livepeer - A 10-minute Primer
+Through storytelling, illustration, and data, the Livepeer Primer explains, at a high level, the problem Livepeer solves, and how it works.
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/share-image-3ED4E.jpg
+
+
+[09/01/2023 11:07] b353n
+What is the point of bondWithHint function ? There no have modifiers , no have checks nothing ..
+
+
+[09/01/2023 11:08] ivand5690
+I actually read it, that is why it led me to confusion.
+It says: "LPT is required to perform the work of transcoding and distributing video on the network"
+Indeed-  Orchestrator should be available 24/7 and token holder (Take a look at Livepeer token section)
+However if you are not 24/7 available but you have tokens then you become a Delegator or Staker.
+
+
+[09/01/2023 11:19] alymurtazamemon
+I think you are misunderstanding it. please read it again
+
+
+[09/01/2023 11:26] alymurtazamemon
+Orchestrators are the transcoding service providers (node operators) they have the CPU power and other resources. They need LTP in order to become a node operator.
+
+Now, after becoming an orchestrator, if they cannot manage time to run this service 24/7 (or they have the less technical knowledge), they can select the delegators who will deposit the LTP into their stake and use their resources.
+
+The total reward will be distributed between the orchestrator and the delegator. The orchestrator will be rewarded for providing the resources and the delegator will be awarded for his service (expertise and time).
+
+
+[09/01/2023 11:36] proxy1967
+Delegators only delegate or stake LPT to Orchestrators, they do not perform the orchestrators job for them
+
+{Reactions}
+👍 
+
+[09/01/2023 11:37] proxy1967
+The more LPT tokens Orchestrators have, the more they earn fees, and delegetros with them
+
+{Reactions}
+👍 
+
+[09/01/2023 11:45] ivand5690
+This is how I also understand it. Delegators are just stakers who deposit their tokens to the Orchestrators. But the Orchestrators are the ones who provide their resources. If you are a delegator you need to choose an Orchestrator which is trustful and available so that you earn fees from their work.
+
+In Summary, if you have Resources but no money, you can´t become Orchestrator, that is why you borrow from the delegators. At least this is how I understand it, however the "Delegator" word is a bit misleading I assume they should be called just Stakers.
+
+{Reactions}
+👍 
+
+[09/01/2023 11:49] alymurtazamemon
+Due to this part I thought that delegators will do these things for them.
+
+But yes you can be right also, let's wait for the team to confirm.
+
+{Attachments}
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/Screenshot_2023-09-01_at_4.48.10_PM-3D9C3.png
+
+
+[09/01/2023 11:50] alymurtazamemon
+But I think this will not effect out audit because others things are similar.
+
+
+[09/01/2023 12:00] ivand5690
+That is the what causes the confusion:
+It is assumed that every token holder is an Orchestrator if it can provide Resources.
+If you are token holder who doesn't have resources or can't provide 24/7, you are just Delegator or just token provider.
+If you want to make money on Livepeer, you don't only need resources but LPT as well.
+
+{Reactions}
+☝️ 
+
+[09/01/2023 12:25] thedob
+Hi. 
+
+1) Yes the Primer is actually a great resource to get an overview of the roles in the protocol. I suggest spending 10 minutes to flip through it. https://livepeer.org/primer
+
+2) Why would orchestrators (O’s) want to attract more stake from delegators (D’s)? More stake means that more work will get routes towards them, and hence they can earn more of the ETH fees paid by broadcasters. They also keep a commission on the rewards that their delegators earn in LPT through the reward cut param. If they don’t want to attract delegator stake they can set their reward cut to 100% and their fee cut to 100% and then no D would want to stake towards them.
+
+{Embed}
+https://livepeer.org/primer
+Livepeer - A 10-minute Primer
+Through storytelling, illustration, and data, the Livepeer Primer explains, at a high level, the problem Livepeer solves, and how it works.
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/share-image-3ED4E.jpg
+
+
+[09/01/2023 13:15] ivand5690
+Thanks for the reply. How is the workload calculated then?
+Let's assume -> I am an Orchestrator 1 with Resources X (which I use at almost 100% )and Stake 1000LPT
+Another Orchestrator 2 comes with same Resources X just like me, but bigger stake 10 000LPT 
+Does it mean Orchestrator 2 will get more work than me, because his stake is bigger?
+How can he manage to execute this extra work when both our Resources (X) are at 100% capacity, he will need to buy more computing power?
+
+
+[09/01/2023 13:20] thedob
+Great questions. The amount of stake is one input into an off chain work selection algorithm. So it is not protocol enforced. Stake represents security, in that it can theoretically be slashed for provably malicious transcoding (though that’s also not enabled in the protocol yet). Hence broadcasters would prefer to route work towards nodes with more to lose by cheating. 
+
+Regarding capacity, it actually is more like a right of first refusal. More stake means you’ll be selected to begin performing video transcoding on a stream, but if you can’t keep up then another node will be selected.
+
+
+[09/01/2023 13:20] thedob
+Again, that work selection algorithm is off chain, varies from client to client, and is outside of the scope of the protocol and audit.
+
+
+[09/01/2023 13:22] ivand5690
+got it, thank you
+
+
+[09/01/2023 13:37] kartoonjoy
+Pinned a message.
+
+
+[09/01/2023 17:01] __141345__
+@dob | Livepeer @victorges in the readme: - Does it use a side-chain?: No
+But in test files, there is arbitrum folder. 
+Could you please confirm the scope?
+
+
+[09/01/2023 17:01] thedob
+The Livepeer protocol is deployed on Arbitrum - with the original LPT token remaining on L1 Ethereum.
+
+{Reactions}
+👍 
+
+[09/01/2023 18:31] Message Wolf#0225 (pinned)
+**Automated Findings / Publicly Known Issues**
+
+Automated findings output for the audit can be found [here](https://gist.github.com/code423n4/7ad0b8f1cbfb9c35cebefdaedcf04d3c).
+
+*Note for C4 wardens: Anything included in the automated findings output is considered a publicly known issue and is ineligible for awards.*
+
+
+[09/01/2023 18:36] itsmetechjay
+Pinned a message.
+
+
+[09/01/2023 21:47] sovaslava9
+Hello. I've issue with tests...
+
+{Attachments}
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/image-71692.png
+
+
+[09/01/2023 22:14] victorges
+hey @SovaSlava!  we actually use `hardhat` on this project so test should be run with `yarn test` (or a smaller set of tests for the audit scope with `yarn test:audit`)
+
+btw the other developer commands are explained in this section: https://github.com/code-423n4/2023-08-livepeer#developer-guide
+
+{Reactions}
+🙏🏼 
+
+[09/01/2023 22:23] sovaslava9
+Lol, sorry 😄
+
+
+[09/01/2023 22:29] sovaslava9
+
+
+{Attachments}
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/image-2E7A1.png
+
+
+[09/01/2023 22:32] victorges
+hmm, if the problem is only on that file, I think it might be wroth trying to delete it on your local repo. it's only a live network deployment test, not relevant in this audit
+
+
+[09/01/2023 22:34] victorges
+lmk if it finds other problems after that. you've also ran `yarn` already right?
+
+
+[09/01/2023 22:42] sovaslava9
+
+
+{Attachments}
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/image-EB9A9.png
+
+
+[09/01/2023 22:43] victorges
+it's like you're not getting the `yarn compile` output on the expected directory
+
+
+[09/01/2023 22:44] victorges
+what's the output of this sequence? `yarn && yarn compile && yarn test:audit`
+
+
+[09/01/2023 22:46] sovaslava9
+the same...
+
+{Attachments}
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/image-46B0F.png
+
+
+[09/02/2023 05:27] bronze_pickaxe
+@dob | Livepeer DM'ed
+
+
+[09/02/2023 06:14] alymurtazamemon
+@dob | Livepeer me too!
+
+
+[09/02/2023 07:31] alymurtazamemon
+Please confirm these roles;
+
+- TicketBroker
+- RoundManager
+- Verifier
+
+Who they will be?
+
+
+[09/02/2023 08:29] thedob
+I have seen a few questions come through about the Verifier role, and whether it is trusted. 
+
+Only the registered "Verifier" in the Controller contract can call the slashTranscoder function. The registered verifier contract is 0x0000000000.... the null address. Hence it can't be invoked right now, as slashing is not active in the protocol.
+
+
+[09/02/2023 11:10] debofx
+Hello @dob | Livepeer How do I get the key for ```$INFURA_KEY```?
+
+
+[09/02/2023 12:01] thedob
+You can register a free account at Infura.io. I would also assume there's a way to use other RPC providers, but am not sure off the top of my head. @debo
+
+{Reactions}
+👍 
+
+[09/02/2023 12:05] alymurtazamemon
+you can also get the alchemy one
+
+{Reactions}
+👍 
+
+[09/02/2023 12:05] alymurtazamemon
+there are many providers.
+
+
+[09/02/2023 12:06] alymurtazamemon
+@victorges Dm you
+
+{Reactions}
+👍 
+
+[09/02/2023 12:43] debofx
+I have an alchemy one somewhere. I take it the fork is a copy? lol
+
+
+[09/02/2023 13:52] Banditx0x#5323
+Are there any past audits for this update?
+
+{Reactions}
+👎 
+
+[09/02/2023 14:02] debofx
+Thanks I got infura working for forge test.
+
+
+[09/02/2023 14:34] 0xnevi
+So don't know if anybody ask this already but how do u run the foundry test for BondingVotes without a paid infura arbitrum API? @dob | Livepeer
+
+
+[09/02/2023 14:34] 0xnevi
+Does alchemy work?
+
+
+[09/02/2023 15:08] victorges
+Yeah you can use alchemy! Just replace the whole URL with another RPC provider
+
+{Reactions}
+👍 (2) 
+
+[09/02/2023 15:09] 0xnevi
+Got it!
+
+
+[09/03/2023 05:32] 0xc86
+a noob question here,what is exactly meant by bonding & unbonding here?
+
+
+[09/03/2023 05:33] 0xarno
+staking and unstaking
+
+
+[09/03/2023 05:33] 0xc86
+ahh! got it,Thanks a lot
+
+
+[09/03/2023 06:57] n3rdziod
+can anyone tell me when is this function called 
+
+function setTreasuryBalanceCeiling(uint256 _ceiling) external onlyControllerOwner {
+        treasuryBalanceCeiling = _ceiling;
+
+
+[09/03/2023 10:51] thedob
+It’s a setter for the parameter which can only be called externally by the smart contract that owns the controller. In the current case, that is a security comittee multisig which reacts to governance votes to move that parameter value.
+
+
+[09/03/2023 14:18] olanre_waju
+what kind of proxy pattern is being used?
+
+
+[09/03/2023 16:22] victorges
+it's a custom proxy implemented/documented here
+https://github.com/code-423n4/2023-08-livepeer/blob/a3d801fa4690119b6f96aeb5508e58d752bda5bc/contracts/ManagerProxy.sol#L19
+
+
+[09/03/2023 16:24] victorges
+it's more similar to a "transparent proxy" pattern than uups, with the target contract address being managed by the controller as well
+
+
+[09/03/2023 16:26] olanre_waju
+thanks
+
+
+[09/03/2023 17:51] .karsar.
+@victorges sent a dm
+
+{Reactions}
+👍 
+
+[09/04/2023 05:40] bronze_pickaxe
+@victorges DM'ed
+
+{Reactions}
+👍 
+
+[09/04/2023 06:09] 0x3b
+Does the `block.number` and `block.timestamp` match the epoch.
+Example: `block.number` is increased by 1 every ~22H (or how long the epoch is).
+
+
+[09/04/2023 06:27] proxy1967
+What's the difference between `Delegator.bondedAmount` and `Delegator.delegatedAmount` ?
+
+
+[09/04/2023 11:48] thedob
+No, the round number is just derived from the Arbitrum block number. You can see the method for computing the current round in the RoundsManager.sol `function currentRound()`
+
+
+[09/04/2023 11:49] thedob
+I believe `bondedAmount` is the self bonded tokens. `delegatedAmount` is the total amount delegated towards this delegator from both themselves, and from other accounts who have staked towards them.
+
+{Reactions}
+👍 
+
+[09/04/2023 19:21] lsaudit
+hey, I have trouble understending `uint256 public quota;`. If quota is 4%, then `quota = 4e4`, is that correct?
+
+
+[09/04/2023 21:33] victorges
+Correct. 50% would be 5e5, 100% would be 1e6
+
+{Reactions}
+thankyou (2) 
+
+[09/05/2023 10:51] 0xarno
+@victorges check dm sir
+
+{Reactions}
+👌 
+
+[09/05/2023 11:44] ladboy233
+Hello
+
+{Reactions}
+🧐 (4) 
+
+[09/05/2023 11:45] ladboy233
+
+
+{Attachments}
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/image-DEE00.png
+
+
+[09/05/2023 11:45] ladboy233
+can I please kindly ask what is the commit we are comparing exactly?
+
+
+[09/05/2023 11:45] ladboy233
+I cannot find a commit hash start with dccab475....
+
+
+[09/05/2023 13:42] 0xnevi
+Oh damn ladbody is here to take us out 🤣
+
+{Reactions}
+😂 (4) 
+
+[09/05/2023 14:46] victorges
+hey! the ae2b202 commit is "absolute", it contains all the changes in the upgrade and doesn't need to be diffed with another commit other than its parent
+
+it might've been just a broken link on the place where you found that one. I see that on the readme we don't have any #diff in the url tho
+
+
+[09/05/2023 19:37] thedob
+Hi all. 24 Hours to Go in this contest! We've gotten lots of great questions on stake accounting logic, the relationship beween Transcoders and Delegators, and reward and fee calculation. But we haven't seen as many questions on the treasury. It would be great to get some eyes on the stake checkpointing logic, voting power calculation and vote counting logic on proposals to the `LivepeerGovernor`.
+
+{Reactions}
+🔥 
+
+[09/05/2023 19:57] 0xnevi
+Trying but its hard 😅, good codebase
+
+{Reactions}
+😆 (2) 
+
+[09/05/2023 20:47] Banditx0x#5323
+Thank you @dob | Livepeer @victorges for being active in answering questions and for writing alot of documentation specifying the invariants you want the system to adhere to. This involement will really ensure you get the most out of your Code4Rena audit!
+
+{Reactions}
+hi5 (2) 
+
+[09/06/2023 18:20] 0x11singh99
+@dob | Livepeer  on which basis new round is updated is it based on some time period  or some call   ?
+ Quick Qs.
+
+
+[09/06/2023 18:21] thedob
+It’s based on math based on the Arbitrum block number.
+
+
+[09/06/2023 18:22] thedob
+And then when a new round begins someone has to call initializeRound
+
+
+[09/06/2023 18:27] thedob
+Correct
+
+{Reactions}
+👍 
+
+[09/06/2023 19:04] 0x11singh99
+@dob | Livepeer  precision in rewardCut  % and feeShare %,,,
+
+
+[09/06/2023 19:04] 0x11singh99
+?
+
+
+[09/06/2023 19:04] victorges
+6 digits (`MathUtils`)
+
+
+[09/06/2023 19:05] 0x11singh99
+and rewardcut rate is 27 digits precision ?
+
+
+[09/06/2023 19:05] victorges
+treasuryRewardCutRate is 27-digit
+
+
+[09/06/2023 19:06] 0x11singh99
+ok Thanks
+
+
+[09/06/2023 19:10] kartoonjoy
+📢 Everyone please start wrapping up your submissions. Your audit closes in less than an hour. Thanks!
+
+
+[09/06/2023 19:11] 0x11singh99
+both these represents % number Or actual  value after percent calculation ?
+
+
+[09/06/2023 19:13] victorges
+they are a percentage. the fraction could be represented as `X / 1000000`. this is what we effectively multiply things by when using either of those cut/share values
+
+{Reactions}
+👍 
+
+[09/06/2023 19:42] Banditx0x#5323
+Im sweating haha
+
+{Attachments}
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/image-2AE33.png
+
+{Reactions}
+worry 
+
+[09/06/2023 19:42] Banditx0x#5323
+18 minutes for my submission to go through xD
+
+
+[09/06/2023 19:42] Banditx0x#5323
+dw issue fixed itself!
+
+{Reactions}
+🙏 (2) 
+
+[09/06/2023 20:02] C4
+**🚨 AUDIT ALERT**
+
+@🐺wardens The **Livepeer Onchain Treasury Upgrade** audit is now closed! Huge thanks to everyone who participated 🔍, whether you submitted a finding or not.
+
+What's next: The sponsor team and judge will review the findings over the next couple of weeks. Keep an eye on #📢announcements for regular updates on how the audit is progressing through awarding 🤑🏆, judging 🧑‍⚖️ and reporting 📜. Feel free to ping a Contest-Admin if you have questions along the way!
+
+{Reactions}
+🙏🏻 (3) 🙌 (3) 
+
+[09/06/2023 20:02] lsaudit
+how many issues?
+
+
+[09/06/2023 20:03] shubh0412
+It was 253 when I submitted just 3 mins before deadline
+
+
+[09/06/2023 20:03] lsaudit
+that's a small number
+
+{Reactions}
+🫡 
+
+[09/06/2023 20:04] Banditx0x#5323
+Small number is good sign
+
+
+[09/06/2023 20:04] mlome
+How do you know that before the contest is closed?
+
+
+[09/06/2023 20:04] ladboy233
+sadly
+
+
+[09/06/2023 20:05] ladboy233
+caught up a meeting and does not even complete all report
+
+
+[09/06/2023 20:05] ladboy233
+....
+
+
+[09/06/2023 20:05] Banditx0x#5323
+@0xladboy | Sparkware is bad sign for me tho, he will win all the contest pool
+
+
+[09/06/2023 20:05] ladboy233
+I have time management issue on this one
+
+
+[09/06/2023 20:05] Banditx0x#5323
+Does this mean you had alot of reports?
+
+
+[09/06/2023 20:05] ladboy233
+but yeah we will see
+
+
+[09/06/2023 20:05] shubh0412
+Click on the 'Your Findings'. The url of your submitted issues.
+
+
+[09/06/2023 20:05] ladboy233
+I think I submit like 8 but I have like 3 does not submit
+
+{Reactions}
+🫠 (4) 
+
+[09/06/2023 20:05] ladboy233
+it is ok
+
+
+[09/06/2023 20:05] ladboy233
+lol
+
+
+[09/06/2023 20:06] Banditx0x#5323
+So you had 11 in total?
+
+
+[09/06/2023 20:06] ladboy233
+yes
+
+{Reactions}
+🔥 (5) 
+
+[09/06/2023 20:07] Banditx0x#5323
+I submitted 11 but maybe 12 are false poisitive
+
+{Reactions}
+😆 (2) 
+
+[09/06/2023 20:10] 0x11singh99
+Thanks to sponsors @dob | Livepeer @victorges  for helping us with quick responses.
+
+{Reactions}
+💯 🙏 ❤️ 
+
+[09/06/2023 20:11] bronze_pickaxe
+yeah the sponsors are awesome
+
+
+[09/06/2023 20:11] Banditx0x#5323
+Yep very useful responses. Documentation was detailed too
+
+
+[09/06/2023 20:12] 0x11singh99
+Yep
+
+
+[09/06/2023 20:15] sp1cymeatball
+jeez, I didn't find anything
+
+
+[09/06/2023 20:16] 0xnevi
+Damn what are u guys looking at? All the best man i had a hard time with this codebase 💪
+
+
+[09/06/2023 20:17] Banditx0x#5323
+~260 submissions means a very solid codebase usually
+
+
+[09/06/2023 20:17] thedob
+Yes thanks so much for all the great questions and submissions. Looking forward to reviewing!
+
+{Reactions}
+same (2) 
+
+[09/08/2023 22:17] Banditx0x#5323
+Im auditing another Code4rena project called "delegate" atm
+
+
+[09/08/2023 22:18] Banditx0x#5323
+In their codebase "delegate" means the person delegating, while in this codebase "delegate" means the person being delegated to
+
+
+[09/09/2023 03:10] uncle Jeff#4407
+kek
+
+
+[09/09/2023 14:56] Banditx0x#5323
+We should have a standard where delegate = verb/action, delegatee = person being delegated to, delegator = person delegating
+
+{Reactions}
+👍 
+
+[09/10/2023 14:10] ladboy233
+?
+
+{Reactions}
+❓ (10) 
+
+[09/10/2023 16:21] 0xarno
+he might be on something
+
+{Reactions}
+🤔 
+
+[09/10/2023 17:15] uncle Jeff#4407
+cute tho
+
+
+[09/10/2023 17:15] uncle Jeff#4407
+@sixiecow
+
+
+[09/11/2023 11:12] cloudellie
+I deleted @HUNTER's post as it appeared accidental 🙂
+
+{Reactions}
+🫡 (5) 
+
+[09/24/2023 13:32] hunter_w3b
+https://tenor.com/view/worried-waiting-gif-19902178
+
+{Embed}
+https://tenor.com/view/worried-waiting-gif-19902178
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/worried-waiting-6F60A.png
+
+
+[09/25/2023 07:29] 0xhelium
+Oh look a wener
+
+
+[09/25/2023 15:28] lsaudit
+any chance the results will be available today/tomorrow? I see escalation has been ended
+
+
+[09/25/2023 17:26] 0x11singh99
+where did  you see,  without backstage
+
+
+[09/25/2023 17:43] lsaudit
+https://www.dailywarden.com/  here 😉
+
+{Reactions}
+ohno (2) 🫡 
+
+[09/27/2023 15:17] lsaudit
+but srsly, any news when should we expect the results to be public?
+
+
+[09/27/2023 15:27] kaveyjoe
+i think Within a week
+
+
+[09/27/2023 15:40] thebrittfactor
+https://tenor.com/view/ariana-grande-victorious-flirty-gif-3470409
+
+{Embed}
+https://tenor.com/view/ariana-grande-victorious-flirty-gif-3470409
+When I know something about my friend I shouldn't know.
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/ariana-grande-victorious-A148C.png
+
+{Reactions}
+dance_vibe (2) 
+
+[09/27/2023 15:58] _paperparachute
+https://tenor.com/view/its-real-and-its-coming-kate-dibiasky-jennifer-lawrence-dont-look-up-its-going-to-happen-gif-24584630
+
+{Embed}
+https://tenor.com/view/its-real-and-its-coming-kate-dibiasky-jennifer-lawrence-dont-look-up-its-going-to-happen-gif-24584630
+Code4rena - ARCHIVE-Q3-2023 - livepeer-aug31 [1145752828212678717].txt_Files/its-real-and-its-coming-kate-dibiasky-2E353.png
+
+
+[09/27/2023 16:09] _paperparachute
+🤑 🎉  Awards for **Livepeer Onchain Treasury Upgrade**:
+
+$16,701.04 USDC » @Banditx0x 
+$5,454.08 USDC » @0xladboy | Sparkware 
+$3,014.31 USDC » @bronze_pickaxe 
+$2,417.44 USDC » @Krace 
+$2,318.70 USDC » @ether_sky 
+$2,318.70 USDC » @VAD37 
+$2,232.82 USDC » @Vagner 
+$1,048.07 USDC » @rvierdiiev 
+$1,003.04 USDC » @ADM 
+$821.21 USDC » @Sathish9098 
+$730.77 USDC » @catellatech
+$695.61 USDC » @HChang26 
+$695.61 USDC » @twicek 
+$562.13 USDC » @JayshreeRAM 
+$458.20 USDC » @Proxy 
+$336.80 USDC » @c3phas 
+$259.08 USDC » @kaveyjoe 
+$125.75 USDC » @0x3b 
+$62.87 USDC » @David Giladi 
+$62.87 USDC » @nadin 
+$62.87 USDC » @favelanky 
+$27.00 USDC » @K42 Ψ 
+$27.00 USDC » @lsaudit 
+$27.00 USDC » @JCK 
+$27.00 USDC »  @ReyAdmirado 
+$27.00 USDC » @turvy_fuzz 
+$27.00 USDC » @0xta 
+$27.00 USDC » @hunter_w3b 
+$27.00 USDC » @SAQ 
+$27.00 USDC » @0x11singh99
+
+🏁 Findings summary
+--------------------------------------—
+High risk findings:  2 unique (5 total)
+Med risk findings: 3 unique (7 total)
+Gas reports: 13 total (Best: @c3phas) 
+QA reports: 7 total (Best: @Proxy) 
+Advanced Analysis reports: 7 total (Best: catellatech)
+
+Awards will be distributed on Polygon within the next week. Congratulations all!  💸 💸 💸
+
+*Note: If you participated in this audit and don’t see your name on this list, please wait until the report is published and the findings repo is made public to check on your submissions.*
+
+{Reactions}
+🫡 (2) C4Keycap chefskiss (2) 
+
+[09/27/2023 16:32] Banditx0x#5323
+Woowww first place!
+
+{Reactions}
+🫡 (10) chefskiss (6) hi5 
+
+[09/27/2023 16:32] Banditx0x#5323
+How do I see the audit report?
+
+
+[09/27/2023 16:33] kaveyjoe
+Congratulations , get your Backstage Role now through Help Desk request  .
+
+
+[09/27/2023 16:36] proxy1967
+Wow best QA report, did not expect that...
+
+
+[09/27/2023 16:39] proxy1967
+Can I get backstage role for this ? I really want to see the report
+
+
+[09/27/2023 16:39] Banditx0x#5323
+😢 me too haha
+
+
+[09/27/2023 16:39] Banditx0x#5323
+KYC time i guess
+
+{Reactions}
+😂 (4) 💯 (2) 
+
+[09/27/2023 16:40] proxy1967
+Just did that last month
+
+
+[09/27/2023 16:43] bronze_pickaxe
+OMG i can't believe it, third place!!
+
+{Reactions}
+chefskiss (4) 
+
+[09/27/2023 16:45] jayshreeram2457
+Reward From  First Audit on Code4rena ,Just WOW !!!
+
+
+[09/27/2023 16:53] ladboy233
+saw your report
+
+
+[09/27/2023 16:53] ladboy233
+awesome finding
+
+
+[09/27/2023 16:53] kaveyjoe
+https://discord.com/channels/810916927919620096/852275457847722014/1156633975029239949
+
+
+[09/27/2023 16:54] Banditx0x#5323
+@0xladboy | Sparkware I got lucky that you couldn't submit all your issues in time though...
+
+
+[09/27/2023 17:33] ladboy233
+lol fairly speaking I find a valid issue that did not submit, but there are other 5 auditor find it, it is ok lollll.
+
+{Reactions}
+4739_Skeletor (3) 
+
+[09/27/2023 17:33] ladboy233
+yeah I saw your other message, let us wait for the report release to discuss specific finding
+
+
+[09/27/2023 17:33] ladboy233
+congrats!
+
+{Reactions}
+thankyou (4) 
+
+[09/28/2023 00:57] krace_h
+😀😀😀😀
+
+
+[09/28/2023 01:00] krace_h
+My first 4 digits
+
+
+[09/28/2023 01:43] ladboy233
+and the payment is sent out like crazy
+
+
+[09/28/2023 01:43] ladboy233
+hahaah
+
+
+==============================================================
+Exported 212 message(s)
+==============================================================
